@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MAZE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            overflow: hidden;
+        }
+
+        #game {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 10px 0 5px;
+            font-size: 32px;
+        }
+
+        #info {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+
+            width: 800px;
+            height: 500px;
+
+            max-width: 95vw;
+            max-height: 65vh;
+
+            background: #39a852;
+            border: 5px solid white;
+        }
+
+        /* -------------------------
+           EKRAN STARTOWY / WYGRANA
+        ------------------------- */
+
+        .screen {
+            position: fixed;
+            inset: 0;
+
+            background: rgba(0, 0, 0, 0.96);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            z-index: 100;
+        }
+
+        #winScreen {
+            display: none;
+        }
+
+        .screen h1 {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .screen p {
+            font-size: 18px;
+            margin: 5px;
+        }
+
+        .mainButton {
+            margin-top: 25px;
+
+            padding: 16px 40px;
+
+            background: white;
+            color: black;
+
+            border: none;
+            border-radius: 8px;
+
+            font-size: 22px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .mainButton:hover {
+            transform: scale(1.05);
+        }
+
+        /* -------------------------
+           STEROWANIE
+        ------------------------- */
+
+        #controls {
+            margin-top: 15px;
+
+            display: grid;
+
+            grid-template-columns: 60px 60px 60px;
+
+            grid-template-rows: 60px 60px;
+
+            gap: 5px;
+
+            justify-content: center;
+        }
+
+        #controls button {
+            background: #222;
+            color: white;
+
+            border: 2px solid #555;
+            border-radius: 8px;
+
+            font-size: 24px;
+            font-weight: bold;
+
+            touch-action: none;
+            user-select: none;
+        }
+
+        #controls button:active {
+            background: #555;
+        }
+
+        #up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        #left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        #down {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        #right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        @media (max-width: 600px) {
+
+            h1 {
+                font-size: 25px;
+            }
+
+            #info {
+                font-size: 14px;
+            }
+
+            #controls {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <h1>MAZE</h1>
+
+    <div id="info">
+        Poziom:
+        <span id="level">1</span>
+
+        &nbsp; | &nbsp;
+
+        Śmierci:
+        <span id="deaths">0</span>
+    </div>
+
+    <canvas id="canvas" width="800" height="500"></canvas>
+
+
+    <div id="controls">
+
+        <button id="up">▲</button>
+
+        <button id="left">◀</button>
+
+        <button id="down">▼</button>
+
+        <button id="right">▶</button>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================
+     EKRAN STARTOWY
+========================== -->
+
+<div id="startScreen" class="screen">
+
+    <h1>MAZE</h1>
+
+    <p>Przejdź przez zielony korytarz.</p>
+
+    <p>Nie dotknij czarnych ścian.</p>
+
+    <p>⚠️ Używaj WASD lub strzałek.</p>
+
+    <button class="mainButton" id="startButton">
+        START
+    </button>
+
+</div>
+
+
+<!-- ==========================
+     EKRAN WYGRANEJ
+========================== -->
+
+<div id="winScreen" class="screen">
+
+    <h1>🎉 WYGRANA!</h1>
+
+    <p>Udało Ci się przejść wszystkie poziomy.</p>
+
+    <p>
+        Śmierci:
+        <span id="finalDeaths">0</span>
+    </p>
+
+    <button class="mainButton" id="restartButton">
+        ZAGRAJ PONOWNIE
+    </button>
+
+</div>
+
+
+<script>
+
+/* ==========================================
+   CANVAS
+========================================== */
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+
+/* ==========================================
+   ELEMENTY HTML
+========================================== */
+
+const levelText = document.getElementById("level");
+const deathsText = document.getElementById("deaths");
+
+const startScreen = document.getElementById("startScreen");
+const winScreen = document.getElementById("winScreen");
+
+const finalDeaths = document.getElementById("finalDeaths");
+
+const startButton = document.getElementById("startButton");
+const restartButton = document.getElementById("restartButton");
+
+
+/* ==========================================
+   GRACZ
+========================================== */
+
+const player = {
+
+    x: 30,
+    y: 30,
+
+    size: 16,
+
+    speed: 3
+
+};
+
+
+/* ==========================================
+   STAN GRY
+========================================== */
+
+let currentLevel = 0;
+
+let deaths = 0;
+
+let gameStarted = false;
+
+
+/* ==========================================
+   KLAWISZE
+========================================== */
+
+const keys = {};
+
+
+/* ==========================================
+   POZIOMY
+========================================== */
+
+const levels = [
+
+    /* ==========================
+       POZIOM 1
+    ========================== */
+
+    {
+
+        start: {
+            x: 30,
+            y: 30
+        },
+
+        finish: {
+            x: 740,
+            y: 430,
+            width: 30,
+            height: 30
+        },
+
+        walls: [
+
+            {
+                x: 100,
+                y: 0,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 200,
+                y: 150,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 300,
+                y: 0,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 400,
+                y: 150,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 500,
+                y: 0,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 600,
+                y: 150,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 700,
+                y: 0,
+                width: 20,
+                height: 350
+            }
+
+        ]
+
+    },
+
+
+    /* ==========================
+       POZIOM 2
+    ========================== */
+
+    {
+
+        start: {
+            x: 30,
+            y: 430
+        },
+
+        finish: {
+            x: 740,
+            y: 30,
+            width: 30,
+            height: 30
+        },
+
+        walls: [
+
+            {
+                x: 100,
+                y: 150,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 200,
+                y: 0,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 300,
+                y: 150,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 400,
+                y: 0,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 500,
+                y: 150,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 600,
+                y: 0,
+                width: 20,
+                height: 350
+            },
+
+            {
+                x: 700,
+                y: 150,
+                width: 20,
+                height: 350
+            }
+
+        ]
+
+    },
+
+
+    /* ==========================
+       POZIOM 3
+    ========================== */
+
+    {
+
+        start: {
+            x: 30,
+            y: 30
+        },
+
+        finish: {
+            x: 740,
+            y: 430,
+            width: 30,
+            height: 30
+        },
+
+        walls: [
+
+            {
+                x: 150,
+                y: 0,
+                width: 20,
+                height: 250
+            },
+
+            {
+                x: 150,
+                y: 350,
+                width: 20,
+                height: 150
+            },
+
+            {
+                x: 300,
+                y: 0,
+                width: 20,
+                height: 150
+            },
+
+            {
+                x: 300,
+                y: 250,
+                width: 20,
+                height: 250
+            },
+
+            {
+                x: 450,
+                y: 0,
+                width: 20,
+                height: 250
+            },
+
+            {
+                x: 450,
+                y: 350,
+                width: 20,
+                height: 150
+            },
+
+            {
+                x: 600,
+                y: 0,
+                width: 20,
+                height: 150
+            },
+
+            {
+                x: 600,
+                y: 250,
+                width: 20,
+                height: 250
+            },
+
+            {
+                x: 700,
+                y: 150,
+                width: 20,
+                height: 200
+            }
+
+        ]
+
+    }
+
+];
+
+
+/* ==========================================
+   RESET KLAWISZY
+========================================== */
+
+function clearKeys() {
+
+    for (const key in keys) {
+
+        keys[key] = false;
+
+    }
+
+}
+
+
+/* ==========================================
+   OBSŁUGA KLAWIATURY
+========================================== */
+
+document.addEventListener("keydown", function(event) {
+
+    const key = event.key.toLowerCase();
+
+    keys[key] = true;
+
+});
+
+
+document.addEventListener("keyup", function(event) {
+
+    const key = event.key.toLowerCase();
+
+    keys[key] = false;
+
+});
+
+
+/*
+   Jeśli gracz zmieni kartę albo okno,
+   wyczyść wszystkie klawisze.
+*/
+
+window.addEventListener("blur", function() {
+
+    clearKeys();
+
+});
+
+
+/* ==========================================
+   KOLIZJA
+========================================== */
+
+function playerCollidesWithWall(x, y) {
+
+    const level = levels[currentLevel];
+
+    const playerBox = {
+
+        x: x,
+
+        y: y,
+
+        width: player.size,
+
+        height: player.size
+
+    };
+
+
+    for (const wall of level.walls) {
+
+        if (
+
+            playerBox.x < wall.x + wall.width &&
+
+            playerBox.x + playerBox.width > wall.x &&
+
+            playerBox.y < wall.y + wall.height &&
+
+            playerBox.y + playerBox.height > wall.y
+
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+
+    return false;
+
+}
+
+
+/* ==========================================
+   RESET GRACZA
+========================================== */
+
+function resetPlayer() {
+
+    const level = levels[currentLevel];
+
+    player.x = level.start.x;
+
+    player.y = level.start.y;
+
+}
+
+
+/* ==========================================
+   ŚMIERĆ
+========================================== */
+
+function die() {
+
+    deaths++;
+
+    deathsText.textContent = deaths;
+
+    clearKeys();
+
+    resetPlayer();
+
+}
+
+
+/* ==========================================
+   META
+========================================== */
+
+function checkFinish() {
+
+    const level = levels[currentLevel];
+
+    const finish = level.finish;
+
+
+    const touchingFinish =
+
+        player.x < finish.x + finish.width &&
+
+        player.x + player.size > finish.x &&
+
+        player.y < finish.y + finish.height &&
+
+        player.y + player.size > finish.y;
+
+
+    if (touchingFinish) {
+
+        nextLevel();
+
+    }
+
+}
+
+
+/* ==========================================
+   NASTĘPNY POZIOM
+========================================== */
+
+function nextLevel() {
+
+    currentLevel++;
+
+
+    if (currentLevel >= levels.length) {
+
+        winGame();
+
+        return;
+
+    }
+
+
+    levelText.textContent = currentLevel + 1;
+
+    clearKeys();
+
+    resetPlayer();
+
+    draw();
+
+}
+
+
+/* ==========================================
+   WYGRANA
+========================================== */
+
+function winGame() {
+
+    gameStarted = false;
+
+    clearKeys();
+
+    finalDeaths.textContent = deaths;
+
+    winScreen.style.display = "flex";
+
+}
+
+
+/* ==========================================
+   START GRY
+========================================== */
+
+function startGame() {
+
+    currentLevel = 0;
+
+    deaths = 0;
+
+    gameStarted = true;
+
+    clearKeys();
+
+    levelText.textContent = "1";
+
+    deathsText.textContent = "0";
+
+    startScreen.style.display = "none";
+
+    winScreen.style.display = "none";
+
+    resetPlayer();
+
+    draw();
+
+}
+
+
+/* ==========================================
+   RESTART GRY
+========================================== */
+
+function restartGame() {
+
+    /*
+       Najpierw całkowicie zatrzymujemy grę.
+    */
+
+    gameStarted = false;
+
+
+    /*
+       Czyścimy klawisze.
+    */
+
+    clearKeys();
+
+
+    /*
+       Zerujemy wszystko.
+    */
+
+    currentLevel = 0;
+
+    deaths = 0;
+
+
+    /*
+       Aktualizujemy tekst.
+    */
+
+    levelText.textContent = "1";
+
+    deathsText.textContent = "0";
+
+    finalDeaths.textContent = "0";
+
+
+    /*
+       Ukrywamy ekran wygranej.
+    */
+
+    winScreen.style.display = "none";
+
+
+    /*
+       Ustawiamy gracza na starcie.
+    */
+
+    resetPlayer();
+
+
+    /*
+       Rysujemy pierwszy poziom.
+    */
+
+    draw();
+
+
+    /*
+       Dopiero teraz uruchamiamy grę.
+    */
+
+    gameStarted = true;
+
+}
+
+
+/* ==========================================
+   AKTUALIZACJA GRY
+========================================== */
+
+function update() {
+
+    if (!gameStarted) {
+
+        return;
+
+    }
+
+
+    let dx = 0;
+
+    let dy = 0;
+
+
+    /*
+       RUCH GÓRA
+    */
+
+    if (
+        keys["arrowup"] ||
+        keys["w"]
+    ) {
+
+        dy -= player.speed;
+
+    }
+
+
+    /*
+       RUCH DÓŁ
+    */
+
+    if (
+        keys["arrowdown"] ||
+        keys["s"]
+    ) {
+
+        dy += player.speed;
+
+    }
+
+
+    /*
+       RUCH LEWO
+    */
+
+    if (
+        keys["arrowleft"] ||
+        keys["a"]
+    ) {
+
+        dx -= player.speed;
+
+    }
+
+
+    /*
+       RUCH PRAWO
+    */
+
+    if (
+        keys["arrowright"] ||
+        keys["d"]
+    ) {
+
+        dx += player.speed;
+
+    }
+
+
+    /*
+       RUCH POZIOMY
+    */
+
+    if (dx !== 0) {
+
+        const newX = player.x + dx;
+
+
+        /*
+           Granica planszy
+        */
+
+        if (
+            newX < 0 ||
+            newX + player.size > canvas.width
+        ) {
+
+            die();
+
+            return;
+
+        }
+
+
+        /*
+           Ściana
+        */
+
+        if (
+            playerCollidesWithWall(
+                newX,
+                player.y
+            )
+        ) {
+
+            die();
+
+            return;
+
+        }
+
+
+        player.x = newX;
+
+    }
+
+
+    /*
+       RUCH PIONOWY
+    */
+
+    if (dy !== 0) {
+
+        const newY = player.y + dy;
+
+
+        /*
+           Granica planszy
+        */
+
+        if (
+            newY < 0 ||
+            newY + player.size > canvas.height
+        ) {
+
+            die();
+
+            return;
+
+        }
+
+
+        /*
+           Ściana
+        */
+
+        if (
+            playerCollidesWithWall(
+                player.x,
+                newY
+            )
+        ) {
+
+            die();
+
+            return;
+
+        }
+
+
+        player.y = newY;
+
+    }
+
+
+    /*
+       Sprawdzamy metę.
+    */
+
+    checkFinish();
+
+}
+
+
+/* ==========================================
+   RYSOWANIE
+========================================== */
+
+function draw() {
+
+    const level = levels[currentLevel];
+
+
+    /*
+       Zielone tło
+    */
+
+    ctx.fillStyle = "#39a852";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    /*
+       Czarne ściany
+    */
+
+    ctx.fillStyle = "#000";
+
+
+    for (const wall of level.walls) {
+
+        ctx.fillRect(
+            wall.x,
+            wall.y,
+            wall.width,
+            wall.height
+        );
+
+    }
+
+
+    /*
+       Meta
+    */
+
+    ctx.fillStyle = "#fff";
+
+    ctx.fillRect(
+        level.finish.x,
+        level.finish.y,
+        level.finish.width,
+        level.finish.height
+    );
+
+
+    /*
+       Gracz
+    */
+
+    ctx.fillStyle = "#000";
+
+    ctx.fillRect(
+        player.x,
+        player.y,
+        player.size,
+        player.size
+    );
+
+}
+
+
+/* ==========================================
+   PĘTLA GRY
+========================================== */
+
+function gameLoop() {
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(gameLoop);
+
+}
+
+
+gameLoop();
+
+
+/* ==========================================
+   PRZYCISKI START / RESTART
+========================================== */
+
+startButton.addEventListener(
+    "click",
+    startGame
+);
+
+
+restartButton.addEventListener(
+    "click",
+    restartGame
+);
+
+
+/* ==========================================
+   STEROWANIE TELEFONEM
+========================================== */
+
+function mobileControl(
+    buttonId,
+    key
+) {
+
+    const button =
+        document.getElementById(buttonId);
+
+
+    button.addEventListener(
+        "pointerdown",
+        function(event) {
+
+            event.preventDefault();
+
+            keys[key] = true;
+
+        }
+    );
+
+
+    button.addEventListener(
+        "pointerup",
+        function(event) {
+
+            event.preventDefault();
+
+            keys[key] = false;
+
+        }
+    );
+
+
+    button.addEventListener(
+        "pointercancel",
+        function(event) {
+
+            event.preventDefault();
+
+            keys[key] = false;
+
+        }
+    );
+
+
+    button.addEventListener(
+        "pointerleave",
+        function() {
+
+            keys[key] = false;
+
+        }
+    );
+
+}
+
+
+mobileControl("up", "arrowup");
+
+mobileControl("down", "arrowdown");
+
+mobileControl("left", "arrowleft");
+
+mobileControl("right", "arrowright");
+
+
+/* ==========================================
+   PIERWSZE RYSOWANIE
+========================================== */
+
+resetPlayer();
+
+draw();
+
+</script>
+
+</body>
+</html>
