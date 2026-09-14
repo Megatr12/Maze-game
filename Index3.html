@@ -1,184 +1,144 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAZE</title>
 
-    <title>MAZE</title>
+<style>
+* {
+    box-sizing: border-box;
+}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+body {
+    margin: 0;
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #111;
-            color: white;
-            font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+    overflow: hidden;
+}
 
-            overflow: hidden;
-        }
+#game {
+    text-align: center;
+}
 
-        #game {
-            width: 100%;
-            max-width: 900px;
-            text-align: center;
-        }
+h1 {
+    margin: 0 0 6px;
+    font-size: 32px;
+}
 
-        h1 {
-            margin: 10px 0 5px;
-            font-size: 32px;
-        }
+#info {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
 
-        #info {
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
+canvas {
+    display: block;
+    width: 800px;
+    height: 500px;
+    max-width: 95vw;
+    max-height: 65vh;
 
-        canvas {
-            display: block;
-            margin: 0 auto;
+    background: #39a852;
+    border: 5px solid white;
+}
 
-            width: 800px;
-            height: 500px;
+.screen {
+    position: fixed;
+    inset: 0;
 
-            max-width: 95vw;
-            max-height: 65vh;
+    background: rgba(0,0,0,0.96);
 
-            background: #39a852;
-            border: 5px solid white;
-        }
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
-        /* -------------------------
-           EKRAN STARTOWY / WYGRANA
-        ------------------------- */
+    z-index: 10;
+}
 
-        .screen {
-            position: fixed;
-            inset: 0;
+#winScreen {
+    display: none;
+}
 
-            background: rgba(0, 0, 0, 0.96);
+.screen h1 {
+    font-size: 50px;
+}
 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+.screen p {
+    font-size: 18px;
+}
 
-            z-index: 100;
-        }
+.mainButton {
+    margin-top: 20px;
+    padding: 15px 35px;
 
-        #winScreen {
-            display: none;
-        }
+    background: white;
+    color: black;
 
-        .screen h1 {
-            font-size: 50px;
-            margin-bottom: 10px;
-        }
+    border: none;
+    border-radius: 8px;
 
-        .screen p {
-            font-size: 18px;
-            margin: 5px;
-        }
+    font-size: 20px;
+    font-weight: bold;
 
-        .mainButton {
-            margin-top: 25px;
+    cursor: pointer;
+}
 
-            padding: 16px 40px;
+.mainButton:hover {
+    transform: scale(1.05);
+}
 
-            background: white;
-            color: black;
+#controls {
+    margin-top: 15px;
 
-            border: none;
-            border-radius: 8px;
+    display: grid;
+    grid-template-columns: 60px 60px 60px;
+    grid-template-rows: 60px 60px;
 
-            font-size: 22px;
-            font-weight: bold;
+    gap: 5px;
+    justify-content: center;
+}
 
-            cursor: pointer;
-        }
+#controls button {
+    background: #222;
+    color: white;
 
-        .mainButton:hover {
-            transform: scale(1.05);
-        }
+    border: 2px solid #555;
+    border-radius: 8px;
 
-        /* -------------------------
-           STEROWANIE
-        ------------------------- */
+    font-size: 24px;
 
-        #controls {
-            margin-top: 15px;
+    user-select: none;
+    touch-action: none;
+}
 
-            display: grid;
+#up {
+    grid-column: 2;
+    grid-row: 1;
+}
 
-            grid-template-columns: 60px 60px 60px;
+#left {
+    grid-column: 1;
+    grid-row: 2;
+}
 
-            grid-template-rows: 60px 60px;
+#down {
+    grid-column: 2;
+    grid-row: 2;
+}
 
-            gap: 5px;
-
-            justify-content: center;
-        }
-
-        #controls button {
-            background: #222;
-            color: white;
-
-            border: 2px solid #555;
-            border-radius: 8px;
-
-            font-size: 24px;
-            font-weight: bold;
-
-            touch-action: none;
-            user-select: none;
-        }
-
-        #controls button:active {
-            background: #555;
-        }
-
-        #up {
-            grid-column: 2;
-            grid-row: 1;
-        }
-
-        #left {
-            grid-column: 1;
-            grid-row: 2;
-        }
-
-        #down {
-            grid-column: 2;
-            grid-row: 2;
-        }
-
-        #right {
-            grid-column: 3;
-            grid-row: 2;
-        }
-
-        @media (max-width: 600px) {
-
-            h1 {
-                font-size: 25px;
-            }
-
-            #info {
-                font-size: 14px;
-            }
-
-            #controls {
-                margin-top: 10px;
-            }
-        }
-    </style>
+#right {
+    grid-column: 3;
+    grid-row: 2;
+}
+</style>
 </head>
 
 <body>
@@ -188,46 +148,32 @@
     <h1>MAZE</h1>
 
     <div id="info">
-        Poziom:
-        <span id="level">1</span>
-
+        Poziom: <span id="level">1</span>
         &nbsp; | &nbsp;
-
-        Śmierci:
-        <span id="deaths">0</span>
+        Śmierci: <span id="deaths">0</span>
     </div>
 
     <canvas id="canvas" width="800" height="500"></canvas>
 
-
     <div id="controls">
-
         <button id="up">▲</button>
-
         <button id="left">◀</button>
-
         <button id="down">▼</button>
-
         <button id="right">▶</button>
-
     </div>
 
 </div>
 
 
-<!-- ==========================
-     EKRAN STARTOWY
-========================== -->
+<!-- START -->
 
 <div id="startScreen" class="screen">
 
     <h1>MAZE</h1>
 
     <p>Przejdź przez zielony korytarz.</p>
-
     <p>Nie dotknij czarnych ścian.</p>
-
-    <p>⚠️ Używaj WASD lub strzałek.</p>
+    <p>WASD lub strzałki.</p>
 
     <button class="mainButton" id="startButton">
         START
@@ -236,15 +182,13 @@
 </div>
 
 
-<!-- ==========================
-     EKRAN WYGRANEJ
-========================== -->
+<!-- WYGRANA -->
 
 <div id="winScreen" class="screen">
 
     <h1>🎉 WYGRANA!</h1>
 
-    <p>Udało Ci się przejść wszystkie poziomy.</p>
+    <p>Udało Ci się przejść wszystkie poziomy!</p>
 
     <p>
         Śmierci:
@@ -260,17 +204,17 @@
 
 <script>
 
-/* ==========================================
+/* ================================
    CANVAS
-========================================== */
+================================ */
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 
-/* ==========================================
-   ELEMENTY HTML
-========================================== */
+/* ================================
+   ELEMENTY
+================================ */
 
 const levelText = document.getElementById("level");
 const deathsText = document.getElementById("deaths");
@@ -284,49 +228,70 @@ const startButton = document.getElementById("startButton");
 const restartButton = document.getElementById("restartButton");
 
 
-/* ==========================================
+/* ================================
    GRACZ
-========================================== */
+================================ */
 
 const player = {
-
     x: 30,
     y: 30,
-
     size: 16,
-
     speed: 3
-
 };
 
 
-/* ==========================================
+/* ================================
    STAN GRY
-========================================== */
+================================ */
 
 let currentLevel = 0;
-
 let deaths = 0;
-
 let gameStarted = false;
 
 
-/* ==========================================
+/* ================================
    KLAWISZE
-========================================== */
+================================ */
 
-const keys = {};
+/*
+   Używamy Set zamiast zwykłego obiektu.
+   Dzięki temu restart nie zostawia
+   starego stanu klawiszy.
+*/
+
+const pressedKeys = new Set();
 
 
-/* ==========================================
+document.addEventListener("keydown", function(event) {
+
+    const key = event.key.toLowerCase();
+
+    pressedKeys.add(key);
+
+});
+
+
+document.addEventListener("keyup", function(event) {
+
+    const key = event.key.toLowerCase();
+
+    pressedKeys.delete(key);
+
+});
+
+
+window.addEventListener("blur", function() {
+
+    pressedKeys.clear();
+
+});
+
+
+/* ================================
    POZIOMY
-========================================== */
+================================ */
 
 const levels = [
-
-    /* ==========================
-       POZIOM 1
-    ========================== */
 
     {
 
@@ -344,63 +309,18 @@ const levels = [
 
         walls: [
 
-            {
-                x: 100,
-                y: 0,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 200,
-                y: 150,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 300,
-                y: 0,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 400,
-                y: 150,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 500,
-                y: 0,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 600,
-                y: 150,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 700,
-                y: 0,
-                width: 20,
-                height: 350
-            }
+            { x:100, y:0, width:20, height:350 },
+            { x:200, y:150, width:20, height:350 },
+            { x:300, y:0, width:20, height:350 },
+            { x:400, y:150, width:20, height:350 },
+            { x:500, y:0, width:20, height:350 },
+            { x:600, y:150, width:20, height:350 },
+            { x:700, y:0, width:20, height:350 }
 
         ]
 
     },
 
-
-    /* ==========================
-       POZIOM 2
-    ========================== */
 
     {
 
@@ -418,63 +338,18 @@ const levels = [
 
         walls: [
 
-            {
-                x: 100,
-                y: 150,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 200,
-                y: 0,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 300,
-                y: 150,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 400,
-                y: 0,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 500,
-                y: 150,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 600,
-                y: 0,
-                width: 20,
-                height: 350
-            },
-
-            {
-                x: 700,
-                y: 150,
-                width: 20,
-                height: 350
-            }
+            { x:100, y:150, width:20, height:350 },
+            { x:200, y:0, width:20, height:350 },
+            { x:300, y:150, width:20, height:350 },
+            { x:400, y:0, width:20, height:350 },
+            { x:500, y:150, width:20, height:350 },
+            { x:600, y:0, width:20, height:350 },
+            { x:700, y:150, width:20, height:350 }
 
         ]
 
     },
 
-
-    /* ==========================
-       POZIOM 3
-    ========================== */
 
     {
 
@@ -492,68 +367,19 @@ const levels = [
 
         walls: [
 
-            {
-                x: 150,
-                y: 0,
-                width: 20,
-                height: 250
-            },
+            { x:150, y:0, width:20, height:250 },
+            { x:150, y:350, width:20, height:150 },
 
-            {
-                x: 150,
-                y: 350,
-                width: 20,
-                height: 150
-            },
+            { x:300, y:0, width:20, height:150 },
+            { x:300, y:250, width:20, height:250 },
 
-            {
-                x: 300,
-                y: 0,
-                width: 20,
-                height: 150
-            },
+            { x:450, y:0, width:20, height:250 },
+            { x:450, y:350, width:20, height:150 },
 
-            {
-                x: 300,
-                y: 250,
-                width: 20,
-                height: 250
-            },
+            { x:600, y:0, width:20, height:150 },
+            { x:600, y:250, width:20, height:250 },
 
-            {
-                x: 450,
-                y: 0,
-                width: 20,
-                height: 250
-            },
-
-            {
-                x: 450,
-                y: 350,
-                width: 20,
-                height: 150
-            },
-
-            {
-                x: 600,
-                y: 0,
-                width: 20,
-                height: 150
-            },
-
-            {
-                x: 600,
-                y: 250,
-                width: 20,
-                height: 250
-            },
-
-            {
-                x: 700,
-                y: 150,
-                width: 20,
-                height: 200
-            }
+            { x:700, y:150, width:20, height:200 }
 
         ]
 
@@ -562,87 +388,47 @@ const levels = [
 ];
 
 
-/* ==========================================
+/* ================================
    RESET KLAWISZY
-========================================== */
+================================ */
 
 function clearKeys() {
 
-    for (const key in keys) {
-
-        keys[key] = false;
-
-    }
+    pressedKeys.clear();
 
 }
 
 
-/* ==========================================
-   OBSŁUGA KLAWIATURY
-========================================== */
+/* ================================
+   RESET GRACZA
+================================ */
 
-document.addEventListener("keydown", function(event) {
-
-    const key = event.key.toLowerCase();
-
-    keys[key] = true;
-
-});
-
-
-document.addEventListener("keyup", function(event) {
-
-    const key = event.key.toLowerCase();
-
-    keys[key] = false;
-
-});
-
-
-/*
-   Jeśli gracz zmieni kartę albo okno,
-   wyczyść wszystkie klawisze.
-*/
-
-window.addEventListener("blur", function() {
-
-    clearKeys();
-
-});
-
-
-/* ==========================================
-   KOLIZJA
-========================================== */
-
-function playerCollidesWithWall(x, y) {
+function resetPlayer() {
 
     const level = levels[currentLevel];
 
-    const playerBox = {
+    player.x = level.start.x;
+    player.y = level.start.y;
 
-        x: x,
+}
 
-        y: y,
 
-        width: player.size,
+/* ================================
+   KOLIZJA
+================================ */
 
-        height: player.size
+function collides(x, y) {
 
-    };
-
+    const level = levels[currentLevel];
 
     for (const wall of level.walls) {
 
         if (
 
-            playerBox.x < wall.x + wall.width &&
-
-            playerBox.x + playerBox.width > wall.x &&
-
-            playerBox.y < wall.y + wall.height &&
-
-            playerBox.y + playerBox.height > wall.y
+            x < wall.x + wall.width &&
+            x + player.size > wall.x &&
+            y < wall.y + wall.height &&
+            y + player.size > wall.y
 
         ) {
 
@@ -652,30 +438,14 @@ function playerCollidesWithWall(x, y) {
 
     }
 
-
     return false;
 
 }
 
 
-/* ==========================================
-   RESET GRACZA
-========================================== */
-
-function resetPlayer() {
-
-    const level = levels[currentLevel];
-
-    player.x = level.start.x;
-
-    player.y = level.start.y;
-
-}
-
-
-/* ==========================================
+/* ================================
    ŚMIERĆ
-========================================== */
+================================ */
 
 function die() {
 
@@ -690,29 +460,22 @@ function die() {
 }
 
 
-/* ==========================================
-   META
-========================================== */
+/* ================================
+   SPRAWDZANIE METY
+================================ */
 
 function checkFinish() {
 
-    const level = levels[currentLevel];
+    const finish = levels[currentLevel].finish;
 
-    const finish = level.finish;
-
-
-    const touchingFinish =
+    if (
 
         player.x < finish.x + finish.width &&
-
         player.x + player.size > finish.x &&
-
         player.y < finish.y + finish.height &&
+        player.y + player.size > finish.y
 
-        player.y + player.size > finish.y;
-
-
-    if (touchingFinish) {
+    ) {
 
         nextLevel();
 
@@ -721,13 +484,15 @@ function checkFinish() {
 }
 
 
-/* ==========================================
+/* ================================
    NASTĘPNY POZIOM
-========================================== */
+================================ */
 
 function nextLevel() {
 
     currentLevel++;
+
+    clearKeys();
 
 
     if (currentLevel >= levels.length) {
@@ -741,18 +506,14 @@ function nextLevel() {
 
     levelText.textContent = currentLevel + 1;
 
-    clearKeys();
-
     resetPlayer();
-
-    draw();
 
 }
 
 
-/* ==========================================
+/* ================================
    WYGRANA
-========================================== */
+================================ */
 
 function winGame() {
 
@@ -767,98 +528,60 @@ function winGame() {
 }
 
 
-/* ==========================================
-   START GRY
-========================================== */
+/* ================================
+   START
+================================ */
 
 function startGame() {
 
     currentLevel = 0;
-
     deaths = 0;
-
-    gameStarted = true;
 
     clearKeys();
 
-    levelText.textContent = "1";
+    resetPlayer();
 
+    levelText.textContent = "1";
     deathsText.textContent = "0";
 
     startScreen.style.display = "none";
-
     winScreen.style.display = "none";
 
-    resetPlayer();
-
-    draw();
+    gameStarted = true;
 
 }
 
 
-/* ==========================================
-   RESTART GRY
-========================================== */
+/* ================================
+   RESTART
+================================ */
 
 function restartGame() {
 
     /*
-       Najpierw całkowicie zatrzymujemy grę.
+       Najważniejsza część:
+       całkowicie resetujemy stan.
     */
 
     gameStarted = false;
 
-
-    /*
-       Czyścimy klawisze.
-    */
-
     clearKeys();
 
-
-    /*
-       Zerujemy wszystko.
-    */
-
     currentLevel = 0;
-
     deaths = 0;
 
-
-    /*
-       Aktualizujemy tekst.
-    */
-
     levelText.textContent = "1";
-
     deathsText.textContent = "0";
-
     finalDeaths.textContent = "0";
-
-
-    /*
-       Ukrywamy ekran wygranej.
-    */
-
-    winScreen.style.display = "none";
-
-
-    /*
-       Ustawiamy gracza na starcie.
-    */
 
     resetPlayer();
 
+    startScreen.style.display = "none";
+    winScreen.style.display = "none";
 
     /*
-       Rysujemy pierwszy poziom.
-    */
-
-    draw();
-
-
-    /*
-       Dopiero teraz uruchamiamy grę.
+       Następna linia uruchamia grę
+       od pierwszej klatki.
     */
 
     gameStarted = true;
@@ -866,96 +589,65 @@ function restartGame() {
 }
 
 
-/* ==========================================
-   AKTUALIZACJA GRY
-========================================== */
+/* ================================
+   AKTUALIZACJA
+================================ */
 
 function update() {
 
     if (!gameStarted) {
-
         return;
-
     }
 
 
     let dx = 0;
-
     let dy = 0;
 
 
-    /*
-       RUCH GÓRA
-    */
-
     if (
-        keys["arrowup"] ||
-        keys["w"]
+        pressedKeys.has("arrowup") ||
+        pressedKeys.has("w")
     ) {
-
         dy -= player.speed;
-
     }
 
 
-    /*
-       RUCH DÓŁ
-    */
-
     if (
-        keys["arrowdown"] ||
-        keys["s"]
+        pressedKeys.has("arrowdown") ||
+        pressedKeys.has("s")
     ) {
-
         dy += player.speed;
-
     }
 
 
-    /*
-       RUCH LEWO
-    */
-
     if (
-        keys["arrowleft"] ||
-        keys["a"]
+        pressedKeys.has("arrowleft") ||
+        pressedKeys.has("a")
     ) {
-
         dx -= player.speed;
-
     }
 
-
-    /*
-       RUCH PRAWO
-    */
 
     if (
-        keys["arrowright"] ||
-        keys["d"]
+        pressedKeys.has("arrowright") ||
+        pressedKeys.has("d")
     ) {
-
         dx += player.speed;
-
     }
 
 
     /*
-       RUCH POZIOMY
+       RUCH X
     */
 
     if (dx !== 0) {
 
         const newX = player.x + dx;
 
-
-        /*
-           Granica planszy
-        */
-
         if (
             newX < 0 ||
-            newX + player.size > canvas.width
+            newX + player.size > canvas.width ||
+            collides(newX, player.y)
         ) {
 
             die();
@@ -963,25 +655,6 @@ function update() {
             return;
 
         }
-
-
-        /*
-           Ściana
-        */
-
-        if (
-            playerCollidesWithWall(
-                newX,
-                player.y
-            )
-        ) {
-
-            die();
-
-            return;
-
-        }
-
 
         player.x = newX;
 
@@ -989,21 +662,17 @@ function update() {
 
 
     /*
-       RUCH PIONOWY
+       RUCH Y
     */
 
     if (dy !== 0) {
 
         const newY = player.y + dy;
 
-
-        /*
-           Granica planszy
-        */
-
         if (
             newY < 0 ||
-            newY + player.size > canvas.height
+            newY + player.size > canvas.height ||
+            collides(player.x, newY)
         ) {
 
             die();
@@ -1011,43 +680,20 @@ function update() {
             return;
 
         }
-
-
-        /*
-           Ściana
-        */
-
-        if (
-            playerCollidesWithWall(
-                player.x,
-                newY
-            )
-        ) {
-
-            die();
-
-            return;
-
-        }
-
 
         player.y = newY;
 
     }
 
 
-    /*
-       Sprawdzamy metę.
-    */
-
     checkFinish();
 
 }
 
 
-/* ==========================================
+/* ================================
    RYSOWANIE
-========================================== */
+================================ */
 
 function draw() {
 
@@ -1055,7 +701,7 @@ function draw() {
 
 
     /*
-       Zielone tło
+       TŁO
     */
 
     ctx.fillStyle = "#39a852";
@@ -1069,11 +715,10 @@ function draw() {
 
 
     /*
-       Czarne ściany
+       ŚCIANY
     */
 
     ctx.fillStyle = "#000";
-
 
     for (const wall of level.walls) {
 
@@ -1088,7 +733,7 @@ function draw() {
 
 
     /*
-       Meta
+       META
     */
 
     ctx.fillStyle = "#fff";
@@ -1102,7 +747,7 @@ function draw() {
 
 
     /*
-       Gracz
+       GRACZ
     */
 
     ctx.fillStyle = "#000";
@@ -1117,9 +762,9 @@ function draw() {
 }
 
 
-/* ==========================================
+/* ================================
    PĘTLA GRY
-========================================== */
+================================ */
 
 function gameLoop() {
 
@@ -1132,12 +777,9 @@ function gameLoop() {
 }
 
 
-gameLoop();
-
-
-/* ==========================================
-   PRZYCISKI START / RESTART
-========================================== */
+/* ================================
+   PRZYCISKI
+================================ */
 
 startButton.addEventListener(
     "click",
@@ -1151,17 +793,13 @@ restartButton.addEventListener(
 );
 
 
-/* ==========================================
-   STEROWANIE TELEFONEM
-========================================== */
+/* ================================
+   STEROWANIE PRZYCISKAMI
+================================ */
 
-function mobileControl(
-    buttonId,
-    key
-) {
+function setupButton(id, key) {
 
-    const button =
-        document.getElementById(buttonId);
+    const button = document.getElementById(id);
 
 
     button.addEventListener(
@@ -1170,7 +808,7 @@ function mobileControl(
 
             event.preventDefault();
 
-            keys[key] = true;
+            pressedKeys.add(key);
 
         }
     );
@@ -1182,7 +820,7 @@ function mobileControl(
 
             event.preventDefault();
 
-            keys[key] = false;
+            pressedKeys.delete(key);
 
         }
     );
@@ -1190,11 +828,9 @@ function mobileControl(
 
     button.addEventListener(
         "pointercancel",
-        function(event) {
+        function() {
 
-            event.preventDefault();
-
-            keys[key] = false;
+            pressedKeys.delete(key);
 
         }
     );
@@ -1204,7 +840,7 @@ function mobileControl(
         "pointerleave",
         function() {
 
-            keys[key] = false;
+            pressedKeys.delete(key);
 
         }
     );
@@ -1212,22 +848,21 @@ function mobileControl(
 }
 
 
-mobileControl("up", "arrowup");
-
-mobileControl("down", "arrowdown");
-
-mobileControl("left", "arrowleft");
-
-mobileControl("right", "arrowright");
+setupButton("up", "arrowup");
+setupButton("down", "arrowdown");
+setupButton("left", "arrowleft");
+setupButton("right", "arrowright");
 
 
-/* ==========================================
-   PIERWSZE RYSOWANIE
-========================================== */
+/* ================================
+   URUCHOMIENIE
+================================ */
 
 resetPlayer();
 
 draw();
+
+gameLoop();
 
 </script>
 
