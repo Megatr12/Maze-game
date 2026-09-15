@@ -557,35 +557,8 @@ function startGame() {
 ================================ */
 
 function restartGame() {
-
-    /*
-       Najważniejsza część:
-       całkowicie resetujemy stan.
-    */
-
-    gameStarted = false;
-
-    clearKeys();
-
-    currentLevel = 0;
-    deaths = 0;
-
-    levelText.textContent = "1";
-    deathsText.textContent = "0";
-    finalDeaths.textContent = "0";
-
-    resetPlayer();
-
-    startScreen.style.display = "none";
-    winScreen.style.display = "none";
-
-    /*
-       Następna linia uruchamia grę
-       od pierwszej klatki.
-    */
-
-    gameStarted = true;
-
+    sessionStorage.setItem("mazeRestart", "1");
+    location.reload();
 }
 
 
@@ -858,10 +831,14 @@ setupButton("right", "arrowright");
    URUCHOMIENIE
 ================================ */
 
-resetPlayer();
+if (sessionStorage.getItem("mazeRestart") === "1") {
+    sessionStorage.removeItem("mazeRestart");
+    startGame();
+} else {
+    resetPlayer();
+}
 
 draw();
-
 gameLoop();
 
 </script>
